@@ -73,17 +73,6 @@ public class Einkaufslistengenerator extends JFrame {
         btnLoeschen.addActionListener(e -> deleteEntries());
         getContentPane().add(btnLoeschen, BorderLayout.SOUTH);
 
-        JMenuBar menuBar = getjMenuBar();
-        setJMenuBar(menuBar);
-
-        changeProducts(null);
-        addEnterKeyListener();
-        addDeleteShortcut();
-
-        cbProdukte.addActionListener(e -> customProduct());
-    }
-
-    private JMenuBar getjMenuBar() {
         JMenuBar menuBar = new JMenuBar();
         JMenu menuDatei = new JMenu("Datei");
         JMenuItem itemNeu = new JMenuItem("Neu");
@@ -93,11 +82,31 @@ public class Einkaufslistengenerator extends JFrame {
         JMenuItem itemLaden = new JMenuItem("Laden");
         itemLaden.addActionListener(e -> loadList());
 
+        menuDatei.setMnemonic(KeyEvent.VK_D); // Mnemonic 'D' für "Datei"
+
+        itemNeu.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
+        itemNeu.setMnemonic(KeyEvent.VK_N); // Mnemonic 'N'
+        itemNeu.addActionListener(e -> newList());
+
+        itemLaden.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_L, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
+        itemLaden.setMnemonic(KeyEvent.VK_L); // Mnemonic 'L'
+        itemLaden.addActionListener(e -> loadList());
+
+        itemSpeichern.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
+        itemSpeichern.setMnemonic(KeyEvent.VK_S); // Mnemonic 'S'
+        itemSpeichern.addActionListener(e -> saveFile());
+
         menuDatei.add(itemNeu);
-        menuDatei.add(itemSpeichern);
         menuDatei.add(itemLaden);
+        menuDatei.add(itemSpeichern);
         menuBar.add(menuDatei);
-        return menuBar;
+        setJMenuBar(menuBar);
+
+        changeProducts(null);
+        addEnterKeyListener();
+        addDeleteShortcut();
+
+        cbProdukte.addActionListener(e -> customProduct());
     }
 
     private void changeProducts(ActionEvent e) {
