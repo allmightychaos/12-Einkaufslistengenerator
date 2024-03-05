@@ -73,32 +73,46 @@ public class Einkaufslistengenerator extends JFrame {
         btnLoeschen.addActionListener(e -> deleteEntries());
         getContentPane().add(btnLoeschen, BorderLayout.SOUTH);
 
+        // Menubar
         JMenuBar menuBar = new JMenuBar();
+        
+        // Menü "Datei"
         JMenu menuDatei = new JMenu("Datei");
+        
+        // Item-1 "Neu"
         JMenuItem itemNeu = new JMenuItem("Neu");
         itemNeu.addActionListener(e -> newList());
+
+        // Item-2 "Speichern"
         JMenuItem itemSpeichern = new JMenuItem("Speichern");
         itemSpeichern.addActionListener(e -> saveFile());
+
+        // Item-3 "Laden"
         JMenuItem itemLaden = new JMenuItem("Laden");
         itemLaden.addActionListener(e -> loadList());
+
+        // Item-4 "Drucken"
+        JMenuItem itemDrucken = new JMenuItem("Drucken");
+        itemDrucken.addActionListener(e -> printItems());
 
         menuDatei.setMnemonic(KeyEvent.VK_D); // Mnemonic 'D' für "Datei"
 
         itemNeu.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
         itemNeu.setMnemonic(KeyEvent.VK_N); // Mnemonic 'N'
-        itemNeu.addActionListener(e -> newList());
 
         itemLaden.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_L, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
         itemLaden.setMnemonic(KeyEvent.VK_L); // Mnemonic 'L'
-        itemLaden.addActionListener(e -> loadList());
 
         itemSpeichern.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
         itemSpeichern.setMnemonic(KeyEvent.VK_S); // Mnemonic 'S'
-        itemSpeichern.addActionListener(e -> saveFile());
+
+        itemDrucken.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_P, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
+        itemDrucken.setMnemonic(KeyEvent.VK_P); // Mnemonic 'P'
 
         menuDatei.add(itemNeu);
         menuDatei.add(itemLaden);
         menuDatei.add(itemSpeichern);
+        menuDatei.add(itemDrucken);
         menuBar.add(menuDatei);
         setJMenuBar(menuBar);
 
@@ -108,6 +122,7 @@ public class Einkaufslistengenerator extends JFrame {
 
         cbProdukte.addActionListener(e -> customProduct());
     }
+
 
     private void changeProducts(ActionEvent e) {
         String produktgruppe = (String) cbProductsgroup.getSelectedItem();
@@ -223,6 +238,14 @@ public class Einkaufslistengenerator extends JFrame {
             } catch (Exception e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    private void printItems() {
+        try {
+            table.print();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
