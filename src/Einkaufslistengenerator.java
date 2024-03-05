@@ -13,8 +13,8 @@ import javax.xml.transform.stream.*;
 import org.w3c.dom.*;
 
 public class Einkaufslistengenerator extends JFrame {
-    private JComboBox<String> cbProduktgruppe, cbProdukte;
-    private JTextField tfEigeneProdukte;
+    private JComboBox<String> cbProductsgroup, cbProdukte;
+    private JTextField tfCustomProducts;
     private JSpinner spAnzahl;
     private JTable table;
     private DefaultTableModel tableModel;
@@ -48,15 +48,15 @@ public class Einkaufslistengenerator extends JFrame {
         getContentPane().setLayout(new BorderLayout());
 
         JPanel panelOben = new JPanel();
-        cbProduktgruppe = new JComboBox<>(produktgruppen.keySet().toArray(new String[0]));
-        cbProduktgruppe.addActionListener(this::changeProducts);
+        cbProductsgroup = new JComboBox<>(produktgruppen.keySet().toArray(new String[0]));
+        cbProductsgroup.addActionListener(this::changeProducts);
         cbProdukte = new JComboBox<>();
-        tfEigeneProdukte = new JTextField(10);
+        tfCustomProducts = new JTextField(10);
         spAnzahl = new JSpinner(new SpinnerNumberModel(1, 1, null, 1));
 
-        panelOben.add(cbProduktgruppe);
+        panelOben.add(cbProductsgroup);
         panelOben.add(cbProdukte);
-        panelOben.add(tfEigeneProdukte);
+        panelOben.add(tfCustomProducts);
         panelOben.add(spAnzahl);
 
         JButton btnHinzufuegen = new JButton("Hinzufügen");
@@ -101,28 +101,48 @@ public class Einkaufslistengenerator extends JFrame {
     }
 
     private void changeProducts(ActionEvent e) {
-        String produktgruppe = (String) cbProduktgruppe.getSelectedItem();
+        String produktgruppe = (String) cbProductsgroup.getSelectedItem();
         List<String> produkte = new ArrayList<>(produktgruppen.get(produktgruppe));
         produkte.add("Weitere");
         cbProdukte.setModel(new DefaultComboBoxModel<>(produkte.toArray(new String[0])));
         cbProdukte.setSelectedIndex(0);
-        tfEigeneProdukte.setEnabled(false);
+        tfCustomProducts.setEnabled(false);
     }
 
     private void customProduct() {
-        tfEigeneProdukte.setEnabled(cbProdukte.getSelectedItem().equals("Weitere"));
+        tfCustomProducts.setEnabled(cbProdukte.getSelectedItem().equals("Weitere"));
         if (cbProdukte.getSelectedItem().equals("Weitere")) {
-            tfEigeneProdukte.requestFocus();
+            tfCustomProducts.requestFocus();
         } else {
-            tfEigeneProdukte.setText("");
+            tfCustomProducts.setText("");
         }
     }
 
     private void addProducts() {
-        String produktgruppe = (String) cbProduktgruppe.getSelectedItem();
-        String produkt = tfEigeneProdukte.getText().isEmpty() ? (String) cbProdukte.getSelectedItem() : tfEigeneProdukte.getText();
+        String produktgruppe = (String) cbProductsgroup.getSelectedItem();
+        String produkt = tfCustomProducts.getText().isEmpty() ? (String) cbProdukte.getSelectedItem() : tfCustomProducts.getText();
         int anzahl = (Integer) spAnzahl.getValue();
-        tableModel.addRow(new Object[]{produktgruppe, produkt, anzahl});
+        boolean exists = false;
+
+        // Durchlaufe die Tabelle und suche nach dem Produkt
+        for (int i = 0; i < tableModel.getRowCount(); i++) {
+            String existingProductsgroup = (String) tableModel.getValueAt(i, 0);
+            String existingProducts = (String) tableModel.getValueAt(i, 1);
+            int existingQuantity = (Integer) tableModel.getValueAt(i, 2);
+
+            // Wenn das Produkt und die Produktgruppe übereinstimmen, aktualisiere die Anzahl
+            if (existingProductsgroup.equals(produktgruppe) && existingProducts.equals(produkt)) {
+                int newQuantity = existingQuantity + anzahl;
+                tableModel.setValueAt(newQuantity, i, 2);
+                exists = true;
+                break;
+            }
+        }
+
+        // Wenn das Produkt nicht existiert, füge es als neuen Eintrag hinzu
+        if (!exists) {
+            tableModel.addRow(new Object[]{produktgruppe, produkt, anzahl});
+        }
     }
 
     private void deleteEntries() {
@@ -206,9 +226,9 @@ public class Einkaufslistengenerator extends JFrame {
             }
         };
 
-        tfEigeneProdukte.addKeyListener(enterKeyAdapter);
+        tfCustomProducts.addKeyListener(enterKeyAdapter);
         cbProdukte.addKeyListener(enterKeyAdapter);
-        cbProduktgruppe.addKeyListener(enterKeyAdapter);
+        cbProductsgroup.addKeyListener(enterKeyAdapter);
         ((JSpinner.DefaultEditor) spAnzahl.getEditor()).getTextField().addKeyListener(enterKeyAdapter);
     }
 
