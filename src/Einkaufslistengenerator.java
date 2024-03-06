@@ -11,6 +11,9 @@ import javax.xml.transform.*;
 import javax.xml.transform.dom.*;
 import javax.xml.transform.stream.*;
 import org.w3c.dom.*;
+import javax.swing.table.TableRowSorter;
+import javax.swing.SortOrder;
+import java.util.ArrayList;
 
 public class Einkaufslistengenerator extends JFrame {
     private JComboBox<String> cbProductsgroup, cbProdukte;
@@ -70,8 +73,16 @@ public class Einkaufslistengenerator extends JFrame {
         getContentPane().add(new JScrollPane(table), BorderLayout.CENTER);
 
         JButton btnLoeschen = new JButton("Löschen");
+        JButton btnSortieren = new JButton("Sortieren");
+
         btnLoeschen.addActionListener(e -> deleteEntries());
-        getContentPane().add(btnLoeschen, BorderLayout.SOUTH);
+        btnSortieren.addActionListener(e -> sortEntries());
+
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.add(btnLoeschen);
+        buttonPanel.add(btnSortieren);
+
+        getContentPane().add(buttonPanel, BorderLayout.SOUTH);
 
         // Menubar
         JMenuBar menuBar = new JMenuBar();
@@ -123,6 +134,18 @@ public class Einkaufslistengenerator extends JFrame {
         cbProdukte.addActionListener(e -> customProduct());
     }
 
+    private void sortEntries() {
+        TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<>(tableModel);
+        table.setRowSorter(sorter);
+
+        List<RowSorter.SortKey> sortKeys = new ArrayList<>();
+
+        sortKeys.add(new RowSorter.SortKey(0, SortOrder.ASCENDING)); // Produktgruppe   (Spalte 0)
+        sortKeys.add(new RowSorter.SortKey(1, SortOrder.ASCENDING)); // Produkte        (Spalte 1)
+
+        sorter.setSortKeys(sortKeys);
+        sorter.sort();
+    }
 
     private void changeProducts(ActionEvent e) {
         String produktgruppe = (String) cbProductsgroup.getSelectedItem();
