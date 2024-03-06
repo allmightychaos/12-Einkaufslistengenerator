@@ -1,31 +1,31 @@
-import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.List;
+import javax.swing.*;
+import javax.swing.SortOrder;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableRowSorter;
 import javax.xml.parsers.*;
 import javax.xml.transform.*;
 import javax.xml.transform.dom.*;
 import javax.xml.transform.stream.*;
 import org.w3c.dom.*;
-import javax.swing.table.TableRowSorter;
-import javax.swing.SortOrder;
-import java.util.ArrayList;
 
 public class Einkaufslistengenerator extends JFrame {
-    private JComboBox<String> cbProductsgroup, cbProdukte;
+    private JComboBox<String> cbProductsgroup, cbProducts;
     private JTextField tfCustomProducts;
-    private JSpinner spAnzahl;
+    private JSpinner spQuantity;
     private JTable table;
     private DefaultTableModel tableModel;
-    private final HashMap<String, List<String>> produktgruppen;
+    private Map<String, List<String>> productgroups;
 
     public Einkaufslistengenerator() {
-        produktgruppen = new HashMap<>();
+        productgroups = new TreeMap<>();
         loadProducts();
+        autoSorter();
         initUI();
     }
 
@@ -35,7 +35,7 @@ public class Einkaufslistengenerator extends JFrame {
             String line;
             while ((line = br.readLine()) != null) {
                 String[] parts = line.split(";");
-                produktgruppen.computeIfAbsent(parts[0], k -> new ArrayList<>()).add(parts[1]);
+                productgroups.computeIfAbsent(parts[0], k -> new ArrayList<>()).add(parts[1]);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -51,16 +51,16 @@ public class Einkaufslistengenerator extends JFrame {
         getContentPane().setLayout(new BorderLayout());
 
         JPanel panelOben = new JPanel();
-        cbProductsgroup = new JComboBox<>(produktgruppen.keySet().toArray(new String[0]));
+        cbProductsgroup = new JComboBox<>(productgroups.keySet().toArray(new String[0]));
         cbProductsgroup.addActionListener(this::changeProducts);
-        cbProdukte = new JComboBox<>();
+        cbProducts = new JComboBox<>();
         tfCustomProducts = new JTextField(10);
-        spAnzahl = new JSpinner(new SpinnerNumberModel(1, 1, null, 1));
+        spQuantity = new JSpinner(new SpinnerNumberModel(1, 1, null, 1));
 
         panelOben.add(cbProductsgroup);
-        panelOben.add(cbProdukte);
+        panelOben.add(cbProducts);
         panelOben.add(tfCustomProducts);
-        panelOben.add(spAnzahl);
+        panelOben.add(spQuantity);
 
         JButton btnHinzufuegen = new JButton("Hinzufügen");
         btnHinzufuegen.addActionListener(e -> addProducts());
@@ -131,7 +131,7 @@ public class Einkaufslistengenerator extends JFrame {
         addEnterKeyListener();
         addDeleteShortcut();
 
-        cbProdukte.addActionListener(e -> customProduct());
+        cbProducts.addActionListener(e -> customProduct());
     }
 
     private void sortEntries() {
@@ -147,18 +147,29 @@ public class Einkaufslistengenerator extends JFrame {
         sorter.sort();
     }
 
+    private void autoSorter() {
+        Map<String, List<String>> sortedproductgroups = new TreeMap<>();
+
+        productgroups.forEach((gruppe, produkte) -> {
+            Collections.sort(produkte);
+            sortedproductgroups.put(gruppe, produkte);
+        });
+
+        productgroups = sortedproductgroups;
+    }
+
     private void changeProducts(ActionEvent e) {
         String produktgruppe = (String) cbProductsgroup.getSelectedItem();
-        List<String> produkte = new ArrayList<>(produktgruppen.get(produktgruppe));
+        List<String> produkte = new ArrayList<>(productgroups.get(produktgruppe));
         produkte.add("Weitere");
-        cbProdukte.setModel(new DefaultComboBoxModel<>(produkte.toArray(new String[0])));
-        cbProdukte.setSelectedIndex(0);
+        cbProducts.setModel(new DefaultComboBoxModel<>(produkte.toArray(new String[0])));
+        cbProducts.setSelectedIndex(0);
         tfCustomProducts.setEnabled(false);
     }
 
     private void customProduct() {
-        tfCustomProducts.setEnabled(cbProdukte.getSelectedItem().equals("Weitere"));
-        if (cbProdukte.getSelectedItem().equals("Weitere")) {
+        tfCustomProducts.setEnabled(cbProducts.getSelectedItem().equals("Weitere"));
+        if (cbProducts.getSelectedItem().equals("Weitere")) {
             tfCustomProducts.requestFocus();
         } else {
             tfCustomProducts.setText("");
@@ -167,8 +178,8 @@ public class Einkaufslistengenerator extends JFrame {
 
     private void addProducts() {
         String produktgruppe = (String) cbProductsgroup.getSelectedItem();
-        String produkt = tfCustomProducts.getText().isEmpty() ? (String) cbProdukte.getSelectedItem() : tfCustomProducts.getText();
-        int anzahl = (Integer) spAnzahl.getValue();
+        String produkt = tfCustomProducts.getText().isEmpty() ? (String) cbProducts.getSelectedItem() : tfCustomProducts.getText();
+        int anzahl = (Integer) spQuantity.getValue();
         boolean exists = false;
 
         // Durchlaufe die Tabelle und suche nach dem Produkt
@@ -282,9 +293,9 @@ public class Einkaufslistengenerator extends JFrame {
         };
 
         tfCustomProducts.addKeyListener(enterKeyAdapter);
-        cbProdukte.addKeyListener(enterKeyAdapter);
+        cbProducts.addKeyListener(enterKeyAdapter);
         cbProductsgroup.addKeyListener(enterKeyAdapter);
-        ((JSpinner.DefaultEditor) spAnzahl.getEditor()).getTextField().addKeyListener(enterKeyAdapter);
+        ((JSpinner.DefaultEditor) spQuantity.getEditor()).getTextField().addKeyListener(enterKeyAdapter);
     }
 
     private void addDeleteShortcut() {
